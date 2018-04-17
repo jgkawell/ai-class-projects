@@ -1,10 +1,6 @@
 #IntelliJ files
-maze-runner/.idea
-shape-finder/.idea
-tile-puzzle-solver/.idea
-maze-runner/target
-shape-finder/target
-tile-puzzle-solver/target
+*/.idea
+*/target
 *.iml
 
 # Compiled class file
