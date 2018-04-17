@@ -1,7 +1,11 @@
 /**
-//Program:      tile_puzzle_solver.java
+//Program:      TilePuzzleSolver
 //Course:       COSC470
-//Description:
+//Description:  Solves the 15 Puzzle (https://en.wikipedia.org/wiki/15_puzzle) for
+//              variable board sizes. The program can be given a start state or
+//              can generate it's own shuffled start state. It then finds the
+//              shortest solution to the puzzle. It can be adjusted by the user
+//              to use different search parameters.
 //Author:       Jack Kawell
 //Revised:      2/28/18
 //Language:     Java
@@ -17,7 +21,7 @@ import java.util.Stack;
 
 /********************************************************************************
 //*******************************************************************************
-//Class:        tile_puzzle_solver
+//Class:        TilePuzzleSolver
 //Description:  This class contains the search logic to solve the puzzle using
 //              breadth and best-first algorithms. The best-first can be done
 //              with either a depth penalty or no penalty. This class also contains
