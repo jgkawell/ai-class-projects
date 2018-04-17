@@ -1,5 +1,5 @@
 # ai-class-projects
-My programming assignments for CS470 Artificial Intelligence.
+My programming assignments for CS470 Artificial Intelligence during the spring of 2018.
 
 ## Descriptions of each program:
 
