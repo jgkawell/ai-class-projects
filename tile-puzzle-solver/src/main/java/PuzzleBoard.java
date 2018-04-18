@@ -89,6 +89,9 @@ public class PuzzleBoard implements Comparable<PuzzleBoard> {
             case 3:
                 movingTileCoordinate = new Coordinate(blank.row, blank.col - 1);
                 return reassignValues(movingTileCoordinate);
+            default:
+                //Wrong direction
+                break;
         }
         return false;
     }
@@ -214,6 +217,9 @@ public class PuzzleBoard implements Comparable<PuzzleBoard> {
                 } else {
                     totalScore = rawScore;
                 }
+                break;
+            default:
+                System.out.println("Bad search mode");
                 break;
         }
     }
