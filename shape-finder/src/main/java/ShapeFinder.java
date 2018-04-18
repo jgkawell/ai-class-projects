@@ -15,13 +15,6 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-
-/********************************************************************************
-//*******************************************************************************
-//Class:        shape_finder
-//Description:  This class contains all the logic to find the shapes within the
-//              image as well as input and output to the user.
-**/
 public class ShapeFinder {
 
     // <editor-fold defaultstate="collapsed" desc="Global Variables">
@@ -42,26 +35,9 @@ public class ShapeFinder {
     private static boolean showCentroids = true;
     private static ArrayList<Integer> regionLabels = new ArrayList<>(); //labels for regions
     private static ArrayList<Integer> regionShapes = new ArrayList<>(); //Types: square=1, rectangle=2, circle=3
-    private static final String CASE_ERROR = "Bad case value";
 
     // </editor-fold>
 
-/*******************************************************************************
-//Method:       main
-//Description:  Main method that calls all other relevant methods within an
-//              ongoing loop that is stopped by the user.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        getUserInput
-//              initialDisplayAndAnalysis
-//              findShapes
-//              displayFinalImage
-//              pauseProgram
-//              keyboardInput.getCharacter
-//              resetProgram
-//              endProgram
-//Globals:      keyboardInput
-**/
     public static void main(String[] args) {
         System.out.println("Imbedded Shape Finder: Jack Kawell\n\n");
 
@@ -87,24 +63,6 @@ public class ShapeFinder {
         endProgram();
     }
 
-/*******************************************************************************
-//Method:       runRegionsMethods
-//Description:  Runs the necessary methods in the Regions class to find and mark
-//              the regions that will be analyzed.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        regionFinder.findRegions
-//              regionFinder.filterRegions
-//              regionFinder.computeRegionProperties
-//Globals:      regionFinder
-//              image
-//              width
-//              height
-//              neighborhood
-//              greyScaleTolerance
-//              minRegionSize
-//              maxRegionSize
-**/
     private static void runRegionsMethods() {
         System.out.println("Finding regions...");
         regionFinder = new Regions(image.imageType, width, height, image.pixels, neighborhood, false, greyScaleTolerance);
@@ -113,21 +71,6 @@ public class ShapeFinder {
         regionFinder.computeRegionProperties();
     }
 
-/*******************************************************************************
-//Method:       displayImage
-//Description:  Displays an image based off of a single int[][]. The type can be
-//              specified for coloring or not.
-//Parameters:   imageName       the name of the image to display
-//              array           the pixel array
-//              type            1 = color conversion, 2 = no color conversion
-//              labelColor      the color to convert the labels to
-//Returns:      Nothing
-//Calls:        imageDisplayLabeled.showImage
-//              keyboardInput.getKeyboardInput
-//              imageDisplayLabeled.closeImageDisplay
-//Globals:      image
-//              keyboardInput
-**/
     private static void displayImage(String imageName, int[][] array, int type, int labelColor) {
         int[][] redArray = null;
         int[][] greenArray = null;
@@ -143,7 +86,7 @@ public class ShapeFinder {
             case 2:
                 break;
             default:
-                LOGGER.severe(CASE_ERROR);
+                LOGGER.severe("Bad type");
                 break;
         }
 
@@ -155,22 +98,7 @@ public class ShapeFinder {
         imageDisplayLabeled.closeImageDisplay();
     }
 
-/*******************************************************************************
-//Method:       overlayRegions
-//Description:  Overlays colored regions onto a grey-scale image based off of the
-//              RGB arrays and the label color.
-//Parameters:   oImage           the grey-scale image to overlay on top of
-//              oRed,oGreen,oBlue       the RGB pixel arrays of the original image
-//              regionedImage           the specific region to overlay
-//              labelColor              the color to convert the label
-//Returns:      Nothing
-//Calls:        None
-//Globals:      height, width
-//              showCentroids
-//              regionFinder
-**/
-    private static ArrayList<int[][]> overlayRegions(
-            int[][] oImage, int[][] oRed, int[][] oGreen, int[][] oBlue, int[][] regionedImage, int labelColor) {
+    private static ArrayList<int[][]> overlayRegions(int[][] oImage, int[][] oRed, int[][] oGreen, int[][] oBlue, int[][] regionedImage, int labelColor) {
         int[][] red = new int[height][width];
         int[][] green = new int[height][width];
         int[][] blue = new int[height][width];
@@ -182,37 +110,19 @@ public class ShapeFinder {
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                int regionedPixel = regionedImage[i][j];
-                if (regionedPixel == 0) {
-                    if (multiOverlay) {
-                        red[i][j] = oRed[i][j];
-                        green[i][j] = oGreen[i][j];
-                        blue[i][j] = oBlue[i][j];
-                    } else {
-                        int originalPixel = oImage[i][j];
-                        red[i][j] = originalPixel;
-                        green[i][j] = originalPixel;
-                        blue[i][j] = originalPixel;
-                    }
-                } else {
-                    switch (labelColor) {
-                        case 1:
-                            red[i][j] = 255;
-                            break;
-                        case 2:
-                            green[i][j] = 255;
-                            break;
-                        case 3:
-                            blue[i][j] = 255;
-                            break;
-                        default:
-                            LOGGER.severe(CASE_ERROR);
-                            break;
-                    }
-                }
+                setPixelValue(oImage[i][j], oRed, oGreen, oBlue, regionedImage[i][j], labelColor, red, green, blue, multiOverlay, i, j);
             }
         }
 
+        assignCentroidPixels(red, green, blue);
+
+        colorArrays.add(red);
+        colorArrays.add(green);
+        colorArrays.add(blue);
+        return colorArrays;
+    }
+
+    private static void assignCentroidPixels(int[][] red, int[][] green, int[][] blue) {
         if (showCentroids) {
             for (int[] centroid : regionFinder.centroids) {
                 int row = centroid[0];
@@ -242,27 +152,36 @@ public class ShapeFinder {
                 }
             }
         }
-
-        colorArrays.add(red);
-        colorArrays.add(green);
-        colorArrays.add(blue);
-        return colorArrays;
     }
 
-/*******************************************************************************
-//Method:       initialDisplayAndAnalysis
-//Description:  Displays the chosen image with basic info, runs the Regions methods,
-//              and displays the regioned image after simplifying it.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        displayImage
-//              runRegionsMethods
-//              simplifyImage
-//              displayImage
-//Globals:      height, width
-//              image
-//              regionFinder
-**/
+    private static void setPixelValue(int originalPixel, int[][] oRed, int[][] oGreen, int[][] oBlue, int regionedPixel, int labelColor, int[][] red, int[][] green, int[][] blue, boolean multiOverlay, int i, int j) {
+        if (regionedPixel == 0) {
+            if (multiOverlay) {
+                red[i][j] = oRed[i][j];
+                green[i][j] = oGreen[i][j];
+                blue[i][j] = oBlue[i][j];
+            } else {
+                red[i][j] = originalPixel;
+                green[i][j] = originalPixel;
+                blue[i][j] = originalPixel;
+            }
+        } else {
+            switch (labelColor) {
+                case 1:
+                    red[i][j] = 255;
+                    break;
+                case 2:
+                    green[i][j] = 255;
+                    break;
+                case 3:
+                    blue[i][j] = 255;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     private static void initialDisplayAndAnalysis() {
         //Show info about image
         System.out.println("The chosen file has these attributes:"
@@ -281,29 +200,6 @@ public class ShapeFinder {
         displayImage("Detected regions", imageWithOverlayedRegions, 1, 3);
     }
 
-/*******************************************************************************
-//Method:       getUserInput
-//Description:  Gets the global values from the user for the analysis, as well as
-//              calls to get the image from the user.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        keyboardInput.getInteger
-//              keyboardInput.getCharacter
-//              keyboardInput.getString
-//              getImage
-//              endProgram
-//Globals:      height, width
-//              image
-//              keyboardInput
-//              greyScaleTolerance
-//              minRegionSize
-//              maxRegionSize
-//              tracerThreshold
-//              circleThreshold
-//              rectangleThreshold
-//              neighborhood
-//              showCentroids
-**/
     private static void getUserInput() {
         greyScaleTolerance = keyboardInput.getInteger(true, 0, 0,
                 Integer.MAX_VALUE, "Enter the greyscale tolerance (default = 0):");
@@ -335,14 +231,6 @@ public class ShapeFinder {
         }
     }
 
-/*******************************************************************************
-//Method:       getImage
-//Description:  Reads in an image from a given file name.
-//Parameters:   fileName                the name of the file to read
-//Returns:      EasyImageDisplay        this contains all the needed image info
-//Calls:        keyboardInput.getKeyboardInput
-//Globals:      keyboardInput
-**/
     private static EasyImageDisplay getImage(String fileName) {
         System.out.println("Fetching image...");
         int imageType = 0;
@@ -418,16 +306,6 @@ public class ShapeFinder {
         return null;
     }
 
-/*******************************************************************************
-//Method:       simplifyImage
-//Description:  Simplifies an image so that it only contains numbers that are based
-//              on the filtered label count. Also populates the regionLabels array.
-//Parameters:   array               the image to simplify
-//Returns:      int[][]             the simplified image
-//Calls:        None
-//Globals:      height, width
-//              regionLabels
-**/
     private static int[][] simplifyImage(int[][] array) {
         int[][] newArray = new int[height][width];
         for (int i = 0; i < height; i++) {
@@ -444,21 +322,6 @@ public class ShapeFinder {
         return newArray;
     }
 
-/*******************************************************************************
-//Method:       displayFinalImage
-//Description:  Displays the final composite image with shapes labeled as well as
-//              the count of different shapes.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        regionFinder.getSingleRegion
-//              overlayRegions
-//              compositeImage.showImage
-//Globals:      height, width
-//              image
-//              regionLabels
-//              regionFinder
-//              regionShapes
-**/
     private static void displayFinalImage() {
         EasyImageDisplay compositeImage = new EasyImageDisplay(1, width, height, null, null, null, image.pixels);
         for (int i = 0; i < regionLabels.size(); i++) {
@@ -488,22 +351,6 @@ public class ShapeFinder {
         compositeImage.showImage("Composite image", true);
     }
 
-/*******************************************************************************
-//Method:       findShapes
-//Description:  Driver method that calls all needed check methods to identify the
-//              shapes in the image.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        regionFinder.getSingleRegion
-//              findTracer
-//              hasInnerShape
-//              findSymmetry
-//              isRectangle
-//              isCircle
-//Globals       regionLabels
-//              regionFinder
-//              regionShapes
-**/
     private static void findShapes() {
         System.out.println("Finding shapes...");
         for (int label : regionLabels) {
@@ -525,34 +372,11 @@ public class ShapeFinder {
                 double regionHeight = ((double) upTracer + (double) downTracer);
                 double regionWidth = ((double) rightTracer + (double) leftTracer);
 
+                //Finds the symmetry of the shape
                 int symmetryType = findSymmetry(upTracer, downTracer, rightTracer, leftTracer);
 
-
-                //Checks based on shape symmetry
-                switch (symmetryType) {
-                    case 0:
-                        shapeType = 0;
-                        break;
-                    case 1:
-                        if (isRectangle(curRegion, label, regionHeight, regionWidth)) {
-                            shapeType = 1;
-                        } else if (isCircle(curRegion, label, regionHeight, regionWidth)) {
-                            shapeType = 3;
-                        } else {
-                            shapeType = 0;
-                        }
-                        break;
-                    case 2:
-                        if (isRectangle(curRegion, label, regionHeight, regionWidth)) {
-                            shapeType = 2;
-                        } else {
-                            shapeType = 0;
-                        }
-                        break;
-                    default:
-                        LOGGER.severe(CASE_ERROR);
-                        break;
-                }
+                //Checks shape type based on shape symmetry
+                shapeType = getShapeType(label, shapeType, curRegion, regionHeight, regionWidth, symmetryType);
             } else {
                 shapeType = 0;
             }
@@ -560,19 +384,34 @@ public class ShapeFinder {
         }
     }
 
-/*******************************************************************************
-//Method:       hasInnerShape
-//Description:  Checks to see if the given region has a shape inside of it or not.
-//Parameters:   label           the region label
-//              downTracer      the distance from the centroid to the bottom edge
-//              leftTracer      the distance from the centroid to the left edge
-//              upTracer      the distance from the centroid to the top edge
-//              rightTracer      the distance from the centroid to the right edge
-//Returns:      boolean         true=has inner shape, false=doesn't have inner shape
-//Calls:        getRegionArea
-//Globals       regionFinder
-//              regionLabels
-**/
+    private static int getShapeType(int label, int shapeType, int[][] curRegion, double regionHeight, double regionWidth, int symmetryType) {
+        switch (symmetryType) {
+            case 0:
+                shapeType = 0;
+                break;
+            case 1:
+                if (isRectangle(curRegion, label, regionHeight, regionWidth)) {
+                    shapeType = 1;
+                } else if (isCircle(curRegion, label, regionHeight, regionWidth)) {
+                    shapeType = 3;
+                } else {
+                    shapeType = 0;
+                }
+                break;
+            case 2:
+                if (isRectangle(curRegion, label, regionHeight, regionWidth)) {
+                    shapeType = 2;
+                } else {
+                    shapeType = 0;
+                }
+                break;
+            default:
+                LOGGER.severe("Symmetry type");
+                break;
+        }
+        return shapeType;
+    }
+
     private static boolean hasInnerShape(int label, int downTracer, int leftTracer, int upTracer, int rightTracer) {
         int centroidRow = regionFinder.centroids[label][0];
         int centroidCol = regionFinder.centroids[label][1];
@@ -600,16 +439,6 @@ public class ShapeFinder {
         return false;
     }
 
-/*******************************************************************************
-//Method:       getRegionArea
-//Description:  Calculates the total area of a single region based on label.
-//Parameters:   label           the region label
-//Returns:      int             the area calculated
-//Calls:        regionFinder.getSingleRegion
-//Globals       regionFinder
-//              height
-//              width
-**/
     private static int getRegionArea(int label) {
         int[][] curRegion = regionFinder.getSingleRegion(label);
         int area = 0;
@@ -623,19 +452,6 @@ public class ShapeFinder {
         return area;
     }
 
-/*******************************************************************************
-//Method:       isRectangle
-//Description:  Checks to see if the given region is a rectangle or not.
-//Parameters:   curRegion       the current region to evaluate
-//              label           the region label
-//              regionHeight    the region's calculated height
-//              regionWidth     the region's calculated width
-//Returns:      boolean         true=is rectangular, false=isn't rectangular
-//Calls:        isAreaPlausible
-//              findTracer
-//Globals       regionFinder
-//              rectangleThreshold
-**/
     private static boolean isRectangle(int[][] curRegion, int label, double regionHeight, double regionWidth) {
         //Initialize values for checks
         int centroidRow = regionFinder.centroids[label][0];
@@ -677,7 +493,7 @@ public class ShapeFinder {
                         sideLength = intWidth;
                         break;
                     default:
-                        LOGGER.severe(CASE_ERROR);
+                        LOGGER.severe("Bad direction");
                         break;
                 }
                 startRow -= rowOffset;
@@ -700,7 +516,7 @@ public class ShapeFinder {
                             startCol += sideTracer;
                             break;
                         default:
-                            LOGGER.severe(CASE_ERROR);
+                            LOGGER.severe("Bad direction");
                             break;
                     }
                     stop = true;
@@ -712,18 +528,6 @@ public class ShapeFinder {
         return true;
     }
 
-/*******************************************************************************
-//Method:       isCircle
-//Description:  Checks to see if the given region is a circle or not.
-//Parameters:   curRegion       the current region to evaluate
-//              label           the region label
-//              regionHeight    the region's calculated height
-//              regionWidth     the region's calculated width
-//Returns:      boolean         true=is circle, false=isn't circle
-//Calls:        isAreaPlausible
-//Globals       regionFinder
-//              circleThreshold
-**/
     private static boolean isCircle(int[][] curRegion, int label, double regionHeight, double regionWidth) {
         //Initialize values for checks
         int centroidRow = regionFinder.centroids[label][0];
@@ -733,24 +537,7 @@ public class ShapeFinder {
         if (isAreaPlausible) {
             double radius = (regionWidth + regionHeight) / 4.0;
             for (int i = 0; i < 360; i += 5) {
-
-                int row = (int) Math.round(radius * Math.sin(i));
-                int col = (int) Math.round(radius * Math.cos(i));
-
-                if ((curRegion[centroidRow + row][centroidCol + col] != 255)) {
-                    boolean valid = false;
-                    for (int offset = 0; offset < circleThreshold / 2; offset++) {
-                        int rowOffset = offset * (row / Math.abs(row));
-                        int colOffset = offset * (col / Math.abs(col));
-                        if (curRegion[centroidRow + row + rowOffset][centroidCol + col + colOffset] == 255
-                                || curRegion[centroidRow + row - rowOffset][centroidCol + col - colOffset] == 255) {
-                            valid = true;
-                        }
-                    }
-                    if (!valid) {
-                        return false;
-                    }
-                }
+                if (checkCircleShape(curRegion, centroidRow, centroidCol, radius, i)) return false;
             }
             return true;
         } else {
@@ -758,18 +545,25 @@ public class ShapeFinder {
         }
     }
 
-/*******************************************************************************
-//Method:       isAreaPlausible
-//Description:  Checks to see if the given region's area matches the calculated
-//              estimated area.
-//Parameters:   shapeType       1=rectangle, 2=circle
-//              regionHeight    the region's calculated height
-//              regionWidth     the region's calculated width
-//              label           the region label
-//Returns:      boolean         true=is plausible, false=isn't plausible
-//Calls:        getRegionArea
-//Globals       None
-**/
+    private static boolean checkCircleShape(int[][] curRegion, int centroidRow, int centroidCol, double radius, int i) {
+        int row = (int) Math.round(radius * Math.sin(i));
+        int col = (int) Math.round(radius * Math.cos(i));
+
+        if ((curRegion[centroidRow + row][centroidCol + col] != 255)) {
+            boolean valid = false;
+            for (int offset = 0; offset < circleThreshold / 2; offset++) {
+                int rowOffset = offset * (row / Math.abs(row));
+                int colOffset = offset * (col / Math.abs(col));
+                if (curRegion[centroidRow + row + rowOffset][centroidCol + col + colOffset] == 255
+                        || curRegion[centroidRow + row - rowOffset][centroidCol + col - colOffset] == 255) {
+                    valid = true;
+                }
+            }
+            return !valid;
+        }
+        return false;
+    }
+
     private static boolean isAreaPlausible(int shapeType, double regionHeight, double regionWidth, int label) {
         double actualArea = (double) getRegionArea(label);
         double idealArea;
@@ -785,25 +579,12 @@ public class ShapeFinder {
                 areaError = Math.abs((idealArea - actualArea) / idealArea);
                 return areaError <= 0.5;
             default:
-                LOGGER.severe(CASE_ERROR);
+                LOGGER.severe("Bad shape type");
                 break;
         }
         return false;
     }
 
-/*******************************************************************************
-//Method:       findTracer
-//Description:  Finds a tracer distance from a single point in a single direction.
-//              This tracer checks for contiguous pixels allowing for error within
-//              the defined error limit and returns the length of the segment.
-//Parameters:   curRegion       the current region to trace
-//              row             the starting row
-//              col             the starting column
-//              direction       Direction to trace: 1=down, 2=left, 3=up, 4=down
-//Returns:      int             the length of the tracer
-//Calls:        None
-//Globals       height, width
-**/
     private static int findTracer(int[][] curRegion, int row, int col, int direction, int tracerErrorLimit) {
         boolean loop = true;
         int errorCounter = 0;
@@ -823,7 +604,7 @@ public class ShapeFinder {
                     col++;
                     break;
                 default:
-                    LOGGER.severe(CASE_ERROR);
+                    LOGGER.severe("Bad direction");
                     break;
             }
             //Check for out of bounds
@@ -846,21 +627,6 @@ public class ShapeFinder {
         return tracer;
     }
 
-/*******************************************************************************
-//Method:       findSymmetry
-//Description:  Finds the symmetry of a region based off of four tracers sent in
-//              the +/-x and +/-y directions.
-//Parameters:   downTracer      the distance from the centroid to the bottom edge
-//              leftTracer      the distance from the centroid to the left edge
-//              upTracer        the distance from the centroid to the top edge
-//              rightTracer     the distance from the centroid to the right edge
-//Returns:      int             the symmetry of the object:
-//                                  0=no symmetry (nothing),
-//                                  1=full symmetry (square or circle),
-//                                  2=half symmetry (rectangle)
-//Calls:        None
-//Globals       tracerThreshold
-**/
     private static int findSymmetry(int upTracer, int downTracer, int rightTracer, int leftTracer) {
         if (upTracer == -1 || downTracer == -1 || rightTracer == -1 || leftTracer == -1) {
             return 0;
@@ -886,40 +652,10 @@ public class ShapeFinder {
         return 0;
     }
 
-/*******************************************************************************
-//Method:       pauseProgram
-//Description:  Pauses the program until the user hits ENTER
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        keyboardInput.getKeyboardInput
-//Globals:      keyboardInput
-**/
     private static void pauseProgram() {
         keyboardInput.getKeyboardInput("Press ENTER...");
     }
 
-/*******************************************************************************
-//Method:       resetProgram
-//Description:  Resets the globals for a new run.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        Nothing
-//Globals:      keyboardInput
-//              image
-//              regionFinder
-//              width
-//              height
-//              greyScaleTolerance
-//              minRegionSize
-//              maxRegionSize
-//              tracerThreshold
-//              circleThreshold
-//              rectangleThreshold
-//              neighborhood
-//              showCentroids
-//              regionLabels
-//              regionShapes
-**/
     private static void resetProgram() {
         keyboardInput = new KeyboardInputClass();
         image = null;
@@ -938,14 +674,6 @@ public class ShapeFinder {
         regionShapes = new ArrayList<>();
     }
 
-/*******************************************************************************
-//Method:       endProgram
-//Description:  Ends the program.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        Nothing
-//Globals:      None
-**/
     private static void endProgram() {
         System.out.println("\n\nExit...");
         System.exit(0);

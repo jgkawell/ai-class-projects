@@ -15,32 +15,33 @@ import java.awt.event.WindowEvent;
 //				Also includes the capability to show text on the image.
 //Author:		Steve Donaldson
 //Date:			4/2/09
+//Modifier:     Jack Kawell
 
 public class EasyImageDisplay extends Frame {
 
     public int imageType;				//1=24 bit color;2=256 level gray scale (for binary, use color values 0 and 255)
     public int imageWidth;				//image width in pixels
     public int imageHeight;				//image height in pixels
-    public int imageSize;				//height*width (*3 for images of type 1)
-    public int pixels[][];				//pixel values in 2D for type 1 or type 2 images
-    public int redPixels[][];			//red pixel values for type 1 images
-    public int greenPixels[][];			//green pixel values for type 1 images
-    public int bluePixels[][];			//blue pixel values for type 1 images
-    public boolean showOnce;			//true=show the image one time; false=continuously
+    private int imageSize;				//height*width (*3 for images of type 1)
+    public int[][] pixels;				//pixel values in 2D for type 1 or type 2 images
+    public int[][] redPixels;			//red pixel values for type 1 images
+    public int[][] greenPixels;			//green pixel values for type 1 images
+    public int[][] bluePixels;			//blue pixel values for type 1 images
+    private boolean showOnce;			//true=show the image one time; false=continuously
     //redraw the image. The "false" option is useful for
     //situations such as those when the image pixels are
     //being changed in another routine.
-    public static int windowHeaderOffset = 30;		//space for window title bar
-    public static int windowSideOffset = 4;			//space for window side bar(s)
-    public static int windowBotttomOffset = 4;		//space for window bottom bar
+    private static final int WINDOW_HEADER_OFFSET = 30;		//space for window title bar
+    private static final int WINDOW_SIDE_OFFSET = 4;			//space for window side bar(s)
+    private static final int WINDOW_BOTTOM_OFFSET = 4;		//space for window bottom bar
 
-    public int textLineCount;			//the number of lines of text in array text[]
-    public String text[];				//each row contains a line of text to be displayed
-    public int textPosition[][];		//the row and column positions in the image at which
+    private int textLineCount;			//the number of lines of text in array text[]
+    private String[] text;				//each row contains a line of text to be displayed
+    private int[][] textPosition;		//the row and column positions in the image at which
     //to display the text
     //**************************************************************************************
 
-    EasyImageDisplay(int type, int width, int height, int redValues[][], int greenValues[][], int blueValues[][], int values[][]) {
+    EasyImageDisplay(int type, int width, int height, int[][] redValues, int[][] greenValues, int[][] blueValues, int[][] values) {
         imageType = type;
         imageWidth = width;
         imageHeight = height;
@@ -81,7 +82,7 @@ public class EasyImageDisplay extends Frame {
     //Returns:		true if successful; false otherwise
     //Calls:		nothing
 
-    public boolean referenceColorArrayData(int redValues[][], int greenValues[][], int blueValues[][]) {
+    public boolean referenceColorArrayData(int[][] redValues, int[][] greenValues, int[][] blueValues) {
         if ((redValues != null) && (greenValues != null) && (blueValues != null)) {
             redPixels = redValues;
             greenPixels = greenValues;
@@ -99,7 +100,7 @@ public class EasyImageDisplay extends Frame {
     //Returns:		true if successful; false otherwise
     //Calls:		nothing
 
-    public boolean referenceGrayArrayData(int values[][]) {
+    public boolean referenceGrayArrayData(int[][] values) {
         if (values != null) {
             pixels = values;
             return true;
@@ -117,7 +118,7 @@ public class EasyImageDisplay extends Frame {
     //Returns:		true if successful; false otherwise
     //Calls:		nothing
 
-    public boolean copyColorArrayData(int redValues[][], int greenValues[][], int blueValues[][]) {
+    public boolean copyColorArrayData(int[][] redValues, int[][] greenValues, int[][] blueValues) {
         if ((redValues != null) && (greenValues != null) && (blueValues != null)) {
             redPixels = new int[imageHeight][imageWidth];
             greenPixels = new int[imageHeight][imageWidth];
@@ -142,13 +143,11 @@ public class EasyImageDisplay extends Frame {
     //Returns:		true if successful; false otherwise
     //Calls:		nothing
 
-    public boolean copyGrayArrayData(int values[][]) {
+    public boolean copyGrayArrayData(int[][] values) {
         if (values != null) {
             pixels = new int[imageHeight][imageWidth];
             for (int r = 0; r < imageHeight; r++) {
-                for (int c = 0; c < imageWidth; c++) {
-                    pixels[r][c] = values[r][c];
-                }
+                System.arraycopy(values[r], 0, pixels[r], 0, imageWidth);
             }
             return true;
         }
@@ -165,15 +164,14 @@ public class EasyImageDisplay extends Frame {
 
     public void showImage(String title, boolean displayOnce) {
         addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
-                //ADDITION: Don't exit the program when the window is closed.
-                //System.exit(0);
                 closeImageDisplay();
             }
         });
         showOnce = displayOnce;
         setTitle(title);
-        setSize(imageWidth + 2 * windowSideOffset, imageHeight + windowHeaderOffset + windowBotttomOffset);
+        setSize(imageWidth + 2 * WINDOW_SIDE_OFFSET, imageHeight + WINDOW_HEADER_OFFSET + WINDOW_BOTTOM_OFFSET);
         setVisible(true);
     }
     //**************************************************************************************
@@ -202,27 +200,31 @@ public class EasyImageDisplay extends Frame {
     //				referenceGrayArrayData
     //				plus various Java graphics routines
 
+    @Override
     public void paint(Graphics g) {
-        int row, column, pixel;
-        Color color = new Color(0);
-        int i, a = 0, b = 0;
+        int row;
+        Color color;
+        int i;
+        int a = 0;
+        int b = 0;
 
         while (a == b) {
+            int column;
             if (imageType == 1) {
                 for (row = 0; row < imageHeight; row++) {
                     for (column = 0; column < imageWidth; column++) {
                         color = new Color(redPixels[row][column], greenPixels[row][column], bluePixels[row][column]);
                         g.setColor(color);
-                        g.drawLine(column + windowSideOffset, row + windowHeaderOffset, column + windowSideOffset, row + windowHeaderOffset);
+                        g.drawLine(column + WINDOW_SIDE_OFFSET, row + WINDOW_HEADER_OFFSET, column + WINDOW_SIDE_OFFSET, row + WINDOW_HEADER_OFFSET);
                     }
                 }
             } else if ((imageType == 2) || (imageType == 3)) {
                 for (row = 0; row < imageHeight; row++) {
                     for (column = 0; column < imageWidth; column++) {
-                        pixel = pixels[row][column];
+                        int pixel = pixels[row][column];
                         color = new Color(pixel, pixel, pixel);
                         g.setColor(color);
-                        g.drawLine(column + windowSideOffset, row + windowHeaderOffset, column + windowSideOffset, row + windowHeaderOffset);
+                        g.drawLine(column + WINDOW_SIDE_OFFSET, row + WINDOW_HEADER_OFFSET, column + WINDOW_SIDE_OFFSET, row + WINDOW_HEADER_OFFSET);
                     }
                 }
             }
@@ -231,7 +233,7 @@ public class EasyImageDisplay extends Frame {
             Font f = new Font("sansserif", Font.BOLD, 12);
             g.setFont(f);
             for (i = 0; i < textLineCount; i++) {
-                g.drawString(text[i], textPosition[i][1] + windowSideOffset, textPosition[i][0] + windowHeaderOffset);
+                g.drawString(text[i], textPosition[i][1] + WINDOW_SIDE_OFFSET, textPosition[i][0] + WINDOW_HEADER_OFFSET);
             }
 
             if (showOnce) {

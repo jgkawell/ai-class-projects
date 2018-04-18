@@ -244,6 +244,14 @@ public class PuzzleBoard implements Comparable<PuzzleBoard> {
 **/
     @Override
     public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (this.getClass() != other.getClass()) {
+            return false;
+        }
+
         PuzzleBoard that = (PuzzleBoard) other;
         for (int i = 0; i < this.sideLength; i++) {
             for (int j = 0; j < this.sideLength; j++) {
@@ -253,6 +261,11 @@ public class PuzzleBoard implements Comparable<PuzzleBoard> {
             }
         }
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
     }
 
 /********************************************************************************

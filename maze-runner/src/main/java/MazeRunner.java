@@ -18,13 +18,6 @@ import java.awt.*;
 import java.util.Deque;
 import java.util.LinkedList;
 
-/**
-//Class:        maze_runner
-//Description:  This class contains all the necessary methods to solve the maze.
-//              It also calls KeyboardInputClass to get input from the user,
-//              ImageDisplay for graphical output, and Coordinate to store the
-//              path information.
-**/
 public class MazeRunner {
 
     // <editor-fold defaultstate="collapsed" desc="Global Variables">
@@ -52,21 +45,6 @@ public class MazeRunner {
     private static ImageDisplay graphicView; //Instance of ImageDisplay for graphic view
     // </editor-fold>
 
-/*******************************************************************************
-//Method:       main
-//Description:  Main method that calls all other relevant methods within an
-//              ongoing loop that is stopped by the user.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        getMazeAndValuesFromUser
-//              navigateMaze
-//              copyMaze
-//              showSolution
-//              requestRepeatFromUser
-//Globals:      startingRow
-//              startingCol
-//              masterMaze
-**/
     public static void main(String[] args) {
         System.out.println("Shortest Maze Solution Finder: Jack Kawell\n");
 
@@ -94,31 +72,6 @@ public class MazeRunner {
         endProgram();
     }
 
-/*******************************************************************************
-//Method:       getMazeAndValuesFromUser
-//Description:  Requests many values from the user such as display type and
-//              whether to show each step of the maze traversal.
-//              Also calls retrieveAndBuildMaze and printMaze to both build
-//              and print the maze respectively.
-//              Does a check on whether the maze contains a possible starting
-//              point.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        keyboardInput.getInteger
-//              retrieveAndBuildMaze
-//              printMaze
-//              getColorMaze
-//              ImageDisplay (constructor)
-//              keyboardInput.getCharacter
-//              endProgram
-//Globals:      displayType
-//              keyboardInput
-//              masterMaze
-//              graphicView
-//              numRows, numCols
-//              startingRow, startingCol
-//              showEachStep
-**/
     private static void getMazeAndValuesFromUser() {
         //Get the maze file from the user
         retrieveAndBuildMaze();
@@ -170,18 +123,6 @@ public class MazeRunner {
         }
     }
 
-/*******************************************************************************
-//Method:       retrieveAndBuildMaze
-//Description:  Prompts the user for a file name and reads in the file to create
-//              the masterMaze char[][] array.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        textFile.getFileName
-//              textFile.getFileContents
-//Globals:      numRows, numCols
-//              startingRow, startingCol
-//              masterMaze
-**/
     private static void retrieveAndBuildMaze() {
         TextFileClass textFile = new TextFileClass();
 
@@ -219,14 +160,6 @@ public class MazeRunner {
         }
     }
 
-/*******************************************************************************
-//Method:       printMaze
-//Description:  Prints the maze to the console window.
-//Parameters:   currentMaze     The maze as a char[][] to be printed
-//Returns:      Nothing
-//Calls:        None
-//Globals:      numRows, numCols
-**/
     private static void printMaze(char[][] currentMaze) {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
@@ -255,15 +188,6 @@ public class MazeRunner {
         System.out.println("");
     }
 
-/*******************************************************************************
-//Method:       getColorMaze
-//Description:  Creates a color maze out of a given char[][] array for graphical
-//              output.
-//Parameters:   maze        The maze to be converted to a Color[][]
-//Returns:      colorMaze   The new color maze
-//Calls:        None
-//Globals:      numRows, numCols
-**/
     private static Color[][] getColorMaze(char[][] maze) {
         Color[][] colorMaze = new Color[numRows][numCols];
         for (int i = 0; i < numRows; i++) {
@@ -291,14 +215,6 @@ public class MazeRunner {
         return colorMaze;
     }
 
-/*******************************************************************************
-//Method:       copyMaze
-//Description:  Creates a deep copy of a given maze.
-//Parameters:   mazeToCopy  The maze to be deep copied
-//Returns:      copyOfMaze  The new copied maze
-//Calls:        None
-//Globals:      numRows, numCols
-**/
     private static char[][] copyMaze(char[][] mazeToCopy) {
         char[][] copyOfMaze = new char[numRows][numCols];
         for (int i = 0; i < numRows; i++) {
@@ -309,27 +225,6 @@ public class MazeRunner {
         return copyOfMaze;
     }
 
-/*******************************************************************************
-//Method:       navigateMaze
-//Description:  The recursive method that digs through the maze to find the
-//              shortest solution.
-//              It keeps track of the shortest path and cuts any branch longer.
-//Parameters:   currentRow, currentCol  The current row and col of the search
-//              currentMaze             The current maze including the path
-//Returns:      Nothing
-//Calls:        printMaze
-//              getColorMaze
-//              keyboardInput.getKeyboardInput
-//              showCurrentMaze
-//              navigateMaze
-//Globals:      numRows, numCols
-//              useBranchAndBound
-//              currentPath
-//              shortestSolutionLength
-//              totalCellsVisited
-//              showEachStep
-//              shortestSolutionPath
-**/
     private static void navigateMaze(int currentRow, int currentCol, char[][] currentMaze) {
         //First check to make sure the position is within bounds
         if ((currentRow >= 0 && currentRow < numRows)
@@ -340,29 +235,10 @@ public class MazeRunner {
             //Check if the location is an eligible path
             boolean validLocation = Character.compare(currentChar, '0') == 0;
 
-            boolean possibleShortest = true;
-            if (useBranchAndBound) {
-                //Check if the path is short enough
-                possibleShortest = currentPath.isEmpty()
-                        || shortestSolutionLength == 0
-                        || currentPath.size() < shortestSolutionLength;
-            }
+            boolean possibleShortest = isPossibleShortest();
 
             if (validLocation && possibleShortest) {
-                //Change the current char to the maze runner char
-                currentMaze[currentRow][currentCol] = 'X';
-                //Add current location to path stack
-                currentPath.push(new Coordinate(currentRow, currentCol));
-                //Increment the total cells visited
-                totalCellsVisited++;
-
-                //Show the step to the user if requested
-                if (showEachStep) {
-                    showCurrentMaze(currentMaze);
-                }
-
-                //Change the current char to the path char
-                currentMaze[currentRow][currentCol] = '+';
+                initializeCheck(currentRow, currentCol, currentMaze);
 
                 navigateMaze(currentRow - 1, currentCol, currentMaze);//UP
                 navigateMaze(currentRow, currentCol + 1, currentMaze);//RIGHT
@@ -374,59 +250,83 @@ public class MazeRunner {
                 //Remove the last location from the stack
                 currentPath.pop();
             } else if (validLocation) {
-                //Increment the total cells visited
-                totalCellsVisited++;
-                //Change the current char to the maze runner char
-                currentMaze[currentRow][currentCol] = 'X';
-                //Tell user the path is canceled
-                if (showEachStep) {
-                    System.out.println("Current path is longer than shortest solution."
-                            + "\nBacktracking...");
-                    showCurrentMaze(currentMaze);
-                }
-                //Change the current char back to blank
-                currentMaze[currentRow][currentCol] = '0';
+                revertBackwards(currentRow, currentCol, currentMaze);
             }
         } else {
             //Make sure it is the shortest maze if B&B isn't used
             if (currentPath.size() < shortestSolutionLength || shortestSolutionLength == 0) {
-                //Save shortest path length
-                shortestSolutionLength = currentPath.size();
-
-                //Clear any old paths
-                if (!shortestSolutionPath.isEmpty()) {
-                    shortestSolutionPath.clear();
-                }
-
-                //Make a copy of the solution path
-                for (int i = 0; i < currentPath.size(); i++) {
-                    Coordinate curPosition = currentPath.removeFirst();
-                    shortestSolutionPath.push(curPosition);
-                    currentPath.addLast(curPosition);
-                }
-
-                //Show solution to user
-                if (showEachStep) {
-                    System.out.println("Solution found!!! Length is: "
-                            + (shortestSolutionLength) + "\n");
-                    showCurrentMaze(currentMaze);
-                }
+                saveShortestPath(currentMaze);
             }
         }
     }
 
-/*******************************************************************************
-//Method:       showCurrentMaze
-//Description:  Displays the current maze to the user.
-//Parameters:   maze  The maze to be displayed
-//Returns:      Nothing
-//Calls:        printMaze
-//              getColorMaze
-//              keyboardInput.getKeyboardInput
-//Globals:      displayType
-//              graphicView
-//              keyboardInput
-**/
+    private static void saveShortestPath(char[][] currentMaze) {
+        //Save shortest path length
+        shortestSolutionLength = currentPath.size();
+
+        //Clear any old paths
+        if (!shortestSolutionPath.isEmpty()) {
+            shortestSolutionPath.clear();
+        }
+
+        //Make a copy of the solution path
+        for (int i = 0; i < currentPath.size(); i++) {
+            Coordinate curPosition = currentPath.removeFirst();
+            shortestSolutionPath.push(curPosition);
+            currentPath.addLast(curPosition);
+        }
+
+        //Show solution to user
+        if (showEachStep) {
+            System.out.println("Solution found!!! Length is: "
+                    + (shortestSolutionLength) + "\n");
+            showCurrentMaze(currentMaze);
+        }
+    }
+
+    private static void revertBackwards(int currentRow, int currentCol, char[][] currentMaze) {
+        //Increment the total cells visited
+        totalCellsVisited++;
+        //Change the current char to the maze runner char
+        currentMaze[currentRow][currentCol] = 'X';
+        //Tell user the path is canceled
+        if (showEachStep) {
+            System.out.println("Current path is longer than shortest solution."
+                    + "\nBacktracking...");
+            showCurrentMaze(currentMaze);
+        }
+        //Change the current char back to blank
+        currentMaze[currentRow][currentCol] = '0';
+    }
+
+    private static void initializeCheck(int currentRow, int currentCol, char[][] currentMaze) {
+        //Change the current char to the maze runner char
+        currentMaze[currentRow][currentCol] = 'X';
+        //Add current location to path stack
+        currentPath.push(new Coordinate(currentRow, currentCol));
+        //Increment the total cells visited
+        totalCellsVisited++;
+
+        //Show the step to the user if requested
+        if (showEachStep) {
+            showCurrentMaze(currentMaze);
+        }
+
+        //Change the current char to the path char
+        currentMaze[currentRow][currentCol] = '+';
+    }
+
+    private static boolean isPossibleShortest() {
+        boolean possibleShortest = true;
+        if (useBranchAndBound) {
+            //Check if the path is short enough
+            possibleShortest = currentPath.isEmpty()
+                    || shortestSolutionLength == 0
+                    || currentPath.size() < shortestSolutionLength;
+        }
+        return possibleShortest;
+    }
+
     private static void showCurrentMaze(char[][] maze) {
         if (displayType == 1) {
             printMaze(maze);
@@ -438,20 +338,6 @@ public class MazeRunner {
         }
     }
 
-/*******************************************************************************
-//Method:       showSolution
-//Description:  Adds the solution to the master maze and displays it to the user.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        printMaze
-//              getColorMaze
-//Globals:      shortestSolutionPath
-//              masterMaze
-//              shortestSolutionLength
-//              totalCellsVisited
-//              displayType
-//              graphicView
-**/
     private static void showSolution() {
         if (shortestSolutionLength != 0){
             //Copy solution path onto the master maze
@@ -478,35 +364,12 @@ public class MazeRunner {
 
     }
 
-/*******************************************************************************
-//Method:       requestRepeatFromUser
-//Description:  Checks to see if the user would like to run another maze.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        keyboardInput.getCharacter
-//              endProgram
-//              resetProgram
-//Globals:      keyboardInput
-**/
     private static boolean requestRepeatFromUser() {
         char input = keyboardInput.getCharacter(true, 'Y', "YN", 1,
                 "\nWould you like to choose another maze? (Y/N)");
         return input != 'N';
     }
 
-/*******************************************************************************
-//Method:       resetProgram
-//Description:  Resets the values for the next maze run.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        graphicView.closeImageDisplay
-//Globals:      displayType
-//              graphicView
-//              currentPath
-//              shortestSolutionPath
-//              shortestSolutionLength
-//              totalCellsVisited
-**/
     private static void resetProgram() {
         //Close maze window if graphic display is chosen
         if (displayType == 2) {
@@ -519,15 +382,6 @@ public class MazeRunner {
         totalCellsVisited = 0;
     }
 
-/*******************************************************************************
-//Method:       endProgram
-//Description:  Closes any open windows and ends the program.
-//Parameters:   None
-//Returns:      Nothing
-//Calls:        graphicView.closeImageDisplay
-//Globals:      displayType
-//              graphicView
-**/
     private static void endProgram() {
         //Close maze window if gaphic display is chosen
         if (displayType == 2) {
@@ -538,11 +392,6 @@ public class MazeRunner {
     }
 }
 
-/********************************************************************************
-//*******************************************************************************
-//Class:        Coordinate
-//Description:  This class contains coordinate values  as rows and columns.
-**/
 class Coordinate {
 
     private int row;
