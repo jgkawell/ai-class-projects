@@ -2,6 +2,11 @@
 */.idea
 */target
 *.iml
+*.mf
+
+# For Othello games
+*.bat
+OthelloBoard
 
 # Compiled class file
 *.class
