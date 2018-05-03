@@ -231,7 +231,7 @@ public class GamePlayer {
 
                     //Keep searching if the depth or time hasn't run out
                     while (continueSearch) {
-                        //Reset the curboard
+                        //Reset the curBoard
                         curBoard = new GameBoard(-1, 0, 0, 0, myColor, opponentColor, pBoardArray);
 
                         //If search depth >= the max moves, stop after current search
