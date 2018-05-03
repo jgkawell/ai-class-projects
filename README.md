@@ -9,7 +9,7 @@ This program finds the shortest solution to escape from a maze using a recursive
 
 ### Othello Player
 #### Sonar Cloud: https://sonarcloud.io/dashboard?id=com.jgkawell%3Aothello-player
-This program plays the game of Othello (Reversi) using a depth-first + iterative deepening technique that utilizes a heuristic running a mini-max anaylsis paired with alpha-beta cutoffs. The hueristic is based on weighting different positions on the board (i.e. corners are best, edges are good, and one space from an edge is bad, etc.). The game can be run with another program built on the same shell program found in the OthelloShell class. This shell was originally designed by the instructor of this class, but I have provided some minor modifications.
+This program plays the game of Othello/Reversi (https://en.wikipedia.org/wiki/Reversi) using a depth-first + iterative deepening technique that utilizes a heuristic running a mini-max anaylsis paired with alpha-beta cutoffs. The hueristic is based on weighting different positions on the board (i.e. corners are best, edges are good, and one space from an edge is bad, etc.). The game can be run with another program built on the same shell program found in the OthelloShell class. This shell was originally designed by the instructor of this class, but I have provided some minor modifications.
 
 ### Shape Finder
 #### Sonar Cloud: https://sonarcloud.io/dashboard?id=com.jgkawell%3Ashape-finder
