@@ -1,5 +1,5 @@
 # AI Class Projects
-My programming assignments for CS470 Artificial Intelligence during the spring of 2018.
+My programming assignments for CS470 Artificial Intelligence during the spring of 2018 at Samford University.
 
 ## Descriptions of each program:
 
