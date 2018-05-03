@@ -54,7 +54,7 @@ public class GameBoard {
      //              opponentColor
      //              board
      **/
-    public GameBoard(int pGameId, int pMoveRow, int pMoveCol, int pDepth, char pMyColor, char pOpponentColor, char[][] pBoard) {
+    GameBoard(int pGameId, int pMoveRow, int pMoveCol, int pDepth, char pMyColor, char pOpponentColor, char[][] pBoard) {
         gameId = pGameId;
         moveRow = pMoveRow;
         moveCol = pMoveCol;
